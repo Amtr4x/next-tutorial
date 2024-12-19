@@ -9,7 +9,8 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { Button } from "@/app/ui/button";
-import { updateInvoice } from "@/app/lib/actions";
+import { updateInvoice, type State } from "@/app/lib/actions";
+import { useActionState } from "react";
 
 export default function EditInvoiceForm({
   invoice,
@@ -18,10 +19,12 @@ export default function EditInvoiceForm({
   invoice: InvoiceForm;
   customers: CustomerField[];
 }) {
+  const initialState: State = { message: null, errors: {} };
   const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
+  const [state, formAction] = useActionState(updateInvoiceWithId, initialState);
 
   return (
-    <form action={updateInvoiceWithId}>
+    <form action={formAction}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Customer Name */}
         <div className="mb-4">
@@ -33,7 +36,9 @@ export default function EditInvoiceForm({
               id="customer"
               name="customerId"
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-              defaultValue={invoice.customer_id}>
+              defaultValue={invoice.customer_id}
+              aria-describedby="customer-error"
+              required>
               <option value="" disabled>
                 Select a customer
               </option>
@@ -44,6 +49,14 @@ export default function EditInvoiceForm({
               ))}
             </select>
             <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+          </div>
+          <div id="customer-error" aria-live="polite" aria-atomic="true">
+            {state.errors?.customerId &&
+              state.errors.customerId.flatMap((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))}
           </div>
         </div>
 
@@ -62,9 +75,20 @@ export default function EditInvoiceForm({
                 defaultValue={invoice.amount}
                 placeholder="Enter USD amount"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                aria-describedby="amount-error"
+                required
+                aria-required
               />
               <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
+          </div>
+          <div id="amount-error" aria-live="polite" aria-atomic="true">
+            {state.errors?.amount &&
+              state.errors.amount.flatMap((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))}
           </div>
         </div>
 
@@ -75,7 +99,9 @@ export default function EditInvoiceForm({
           </legend>
           <div className="rounded-md border border-gray-200 bg-white px-[14px] py-3">
             <div className="flex gap-4">
-              <div className="flex items-center">
+              <div
+                className="flex items-center"
+                aria-describedby="status-error">
                 <input
                   id="pending"
                   name="status"
@@ -106,6 +132,14 @@ export default function EditInvoiceForm({
                 </label>
               </div>
             </div>
+          </div>
+          <div id="status-error" aria-live="polite" aria-atomic="true">
+            {state.errors?.status &&
+              state.errors.status.flatMap((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))}
           </div>
         </fieldset>
       </div>
